@@ -24,6 +24,9 @@ public class DispatchController extends HttpServlet {
     private final String LOGIN_CONTROLLER = "LoginServlet"; 
     private final String SEARCH_LASTNAME_PAGE = "SearchLastNameServlet";
     private final String DELETE_PAGE = "DeleteServlet";
+    private final String FIRST_TIME_REQUEST = "FirstTimeServlet";
+    private final String UPDATE_PAGE = "UpdatetServlet";    
+    private final String LOG_OUT = "LogoutServlet";
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -43,14 +46,18 @@ public class DispatchController extends HttpServlet {
         
         try {
             if(button == null){
-                //do nothing
+                url = FIRST_TIME_REQUEST;
             } else if (button.equals("Login")){
                 url = LOGIN_CONTROLLER;
             } else if (button.equals("Search")){
                 url = SEARCH_LASTNAME_PAGE;
             } else if (button.equals("delete")){
                 url = DELETE_PAGE;
-            }
+            } else if (button.equals("Logout")){
+                url = LOG_OUT;
+            } else if (button.equals("update")){
+                url = UPDATE_PAGE;
+            } 
         }finally{
             RequestDispatcher rd = request.getRequestDispatcher(url);
             rd.forward(request, response);

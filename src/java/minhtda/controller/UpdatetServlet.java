@@ -3,79 +3,70 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
+
 package minhtda.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import javax.naming.NamingException;
-import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.sql.SQLException;
+import javax.naming.NamingException;
 import minhtda.registration.RegistrationDAO;
 
 /**
  *
- * @author loqua
+ * @author minhd
  */
-public class LoginServlet extends HttpServlet {
-
-    private final String SEARCH_PAGE = "search.jsp";
-    private final String INVALID_PAGE = "invalid.html";
-
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
+@WebServlet(name="UpdatetServlet", urlPatterns={"/UpdatetServlet"})
+public class UpdatetServlet extends HttpServlet {
+       private final String ERROR_PAGE = "error.html";
+    /** 
+     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        String url = ERROR_PAGE;
         PrintWriter out = response.getWriter();
-
-        String url = INVALID_PAGE;
-
+        String username = request.getParameter("txtUsername");
+        String password = request.getParameter("txtPassword");
+        String searchValue = request.getParameter("lastSearchValue");
+        String roll = request.getParameter("chkAdmin");
+        boolean isRoll = false;
         try {
-            String username = request.getParameter("txtUsername");
-            String password = request.getParameter("txtPassword");
-            //1. call DAO
-            //1.1 new Object
-            RegistrationDAO dao = new RegistrationDAO();
-
-            //1.2 call method of that object
-            boolean result = dao.checkLogin(username, password);
-            //2. proccess response object
-            if (result) {
-                url = SEARCH_PAGE;
-                Cookie cookie = new Cookie(username, password);
-                cookie.setMaxAge(60*3);
-                response.addCookie(cookie);
-            }//end user has already existed
-
-            //end user clicked Login
+            //1.Call DAO
+            RegistrationDAO dao =  new RegistrationDAO();
+            if(roll!=null){
+                isRoll = true;
+            }
+            //2.Refresh data gird call the search value function using url rewriting technology
+            boolean result = dao.updateAccount(username,password,isRoll);
+            if(result){
+                url = "DispatchController"
+                        + "?btAction=Search"
+                        + "&txtSearch=" + searchValue;
+            }
+            //3. Delete action is succeded
         } catch (NamingException ex) {
             ex.printStackTrace();
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-            RequestDispatcher rd = request.getRequestDispatcher(url);
-            rd.forward(request, response);
-            out.close();
+            response.sendRedirect(url);
         }
-    }
+    } 
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
+    /** 
      * Handles the HTTP <code>GET</code> method.
-     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -83,13 +74,12 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         processRequest(request, response);
-    }
+    } 
 
-    /**
+    /** 
      * Handles the HTTP <code>POST</code> method.
-     *
      * @param request servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
@@ -97,13 +87,12 @@ public class LoginServlet extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
+    /** 
      * Returns a short description of the servlet.
-     *
      * @return a String containing servlet description
      */
     @Override
