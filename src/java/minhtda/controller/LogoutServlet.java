@@ -8,14 +8,19 @@ package minhtda.controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.jsp.PageContext;
-import jakarta.websocket.Session;
+import java.util.Properties;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.jsp.PageContext;
+import javax.websocket.Session;
+import javax.naming.NamingException;
+import javax.servlet.ServletContext;
+import minhtda.utils.MyApplicationConstants;
 
 /**
  *
@@ -23,7 +28,7 @@ import jakarta.websocket.Session;
  */
 @WebServlet(name="LogoutServlet", urlPatterns={"/LogoutServlet"})
 public class LogoutServlet extends HttpServlet {
-    private final String ERROR_PAGE ="error.html";
+    //private final String ERROR_PAGE ="error.html";
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -34,17 +39,21 @@ public class LogoutServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        String url = ERROR_PAGE;
+        ServletContext context = this.getServletContext();
+        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
+        String url = siteMaps.getProperty(MyApplicationConstants.LogOutFeature.ERROR_PAGE);
         response.setContentType("text/html;charset=UTF-8");
-        try  {
-            HttpSession session = request.getSession();
+        HttpSession session = request.getSession();
+        try {
             if(session != null){
+                
                 session.invalidate();
                 url = "DispatchController?btAction=login";
             }
+            
         }
         finally{
-            response.sendRedirect(url);
+        response.sendRedirect(url);
         }
     } 
 

@@ -6,32 +6,25 @@
 
 package minhtda.controller;
 
-import javax.servlet.Registration;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.Properties;
-import javax.naming.NamingException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import minhtda.registration.RegistrationDAO;
-import minhtda.registration.RegistrationDTO;
-import minhtda.utils.MyApplicationConstants;
+import javax.servlet.http.HttpSession;
+import minhtda.cart.CartObject;
+import minhtda.product.ProductDTO;
 
 /**
  *
  * @author minhd
  */
-@WebServlet(name="FirstTimeServlet", urlPatterns={"/FirstTimeServlet"})
-public class FirstTimeServlet extends HttpServlet {
-//    private final String LOGIN_PAGE = "login.html";
-//    private final String SEARCH_PAGE = "search.jsp";
+@WebServlet(name="RemovecartServlet", urlPatterns={"/RemovecartServlet"})
+public class RemoveCartServlet extends HttpServlet {
+   
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -42,43 +35,29 @@ public class FirstTimeServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        ServletContext context = this.getServletContext();
-        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
-        String url = siteMaps.getProperty(MyApplicationConstants.FirstTimeFeature.LOGIN_PAGE);
         PrintWriter out = response.getWriter();
         try{
-            //1 get cookies
-            Cookie[] cookies = request.getCookies();
-//            if(cookies != null){
-//                Cookie lastCookie = cookies[cookies.length - 1];
-//                String username = lastCookie.getName();
-//                String password = lastCookie.getValue();
-//                RegistrationDAO dao = new RegistrationDAO();
-//                boolean result = dao.checkLogin(username, password);
-//                if(result){
-//                    url = SEARCH_PAGE;
-//                }
-            if(cookies != null){
-                String username = cookies[cookies.length - 1].getName();
-                String password = cookies[cookies.length - 1].getValue();
-                RegistrationDAO dao = new RegistrationDAO();
-                RegistrationDTO result = dao.checkLogin(username, password);
-                if(result!=null){
-                    url = siteMaps.getProperty(MyApplicationConstants.FirstTimeFeature.SEARCH_PAGE);
+            HttpSession session = request.getSession(false);
+            if(session != null){
+                CartObject cart = (CartObject)session.getAttribute("CART");
+                if(cart != null){
+                    Map<String, ProductDTO> items = cart.getItems();
+                    if(items != null){
+                        String[] selectedItems = request.getParameterValues("checkbox");
+                        if(selectedItems != null){
+                            for(String item : selectedItems){
+                                cart.removeItemFromCart(item);
+                            }
+                            session.setAttribute("CART", cart);
+                        }
+                    }
                 }
             }
-            //2 get last cookie
-            //3 set username and password 
-            //4 call DAO 
-            //5 process
-        }catch (NamingException ex) {
-            ex.printStackTrace();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        finally{
-            RequestDispatcher rd = request.getRequestDispatcher(url);
-            rd.forward(request, response);
+        }finally{
+            // system refresh cart = call function viewcart using url rewriting
+            String urlRewriting = "DispatchController"
+                    + "?btAction=View Your Cart";
+            response.sendRedirect(urlRewriting);
         }
     } 
 

@@ -1,13 +1,15 @@
 <%-- 
     Document   : search
     Created on : Oct 3, 2022, 10:55:15 AM
-    Author     : loqua
+    Author     : minhd
 --%>
 
-<%@page import="minhtda.registration.RegistrationDTO"%>
+<%--<%@page import="minhtda.registration.RegistrationDTO"%>
 <%@page import="java.util.List"%>
-<%@page import="jakarta.servlet.http.Cookie"%>
+<%@page import="javax.servlet.http.Cookie"%>--%>
+
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <!DOCTYPE html>
 <html>
     <head>
@@ -16,121 +18,105 @@
     </head>
     <body>
         <font color="red">
-            <%
-                
-                Cookie[] cookies = request.getCookies();
-                if(cookies != null){
-                Cookie lastCookie = cookies[cookies.length - 1];
-                String username = lastCookie.getName();
-                %>Welcome,
-                <%= username %>
-                <%
-                }
-            %> 
-                
-                
-               
-            
+        Welcome, ${sessionScope.USER.fullName}
         </font>
-
-            <form action="DispatchController">
-                <input type="submit" value="Logout" name="btAction" />
-            </form>
+        <h1>Welcome to search page</h1>
+        <form action="DispatchController">
+            <input type="submit" value="Logout" name="btAction" />
+        </form>
         <div>Welcome to search page</div>
         <form action="DispatchController">
             Search <input type="text" name="txtSearch" 
-                          value="<%= request.getParameter("txtSearch")%>" />
+                          value="${param.txtSearch}" />
             <br>
             <input type="submit" value="Search" name="btAction" />
         </form><br>
-        <%
-            String searchValue = request.getParameter("txtSearch");
-            if (searchValue != null) {
-                //Ket qua tra ve co kieu du lieu la List<RegistrationDTO>
-                List<RegistrationDTO> result
-                        = (List<RegistrationDTO>) request.getAttribute("SEARCH_RESULT");
-                if (result != null) {
-        %>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Username</th>
-                    <th>Password</th>
-                    <th>Full Name</th>
-                    <th>Role</th>
-                    <th>Delete</th>
-                    <th>Update</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                    int count = 0;
-                    for (RegistrationDTO dto : result) {
-                        String urlRewriting = "DispatchController"
-                                + "?btAction=delete"
-                                + "&pk=" + dto.getUsername() 
-                                + "&lastSearchValue=" + searchValue;
-                %>
-            <form action="DispatchController" method="POST">
-                <tr>
-                    <td>
-                        <%= ++count %>
-                        .</td>
-                    <td>
-                        <%= dto.getUsername() %>
-                        <input type="hidden" name="txtUsername" 
-                               value="<%= dto.getUsername() %>" />
-                    </td>
-                    <td>
-                        <input type="password" name="txtPassword" 
-                               value="<%= dto.getPassword() %>" />
-                    </td>
-                    <td>
-                        <%= dto.getFullName() %>
-                    </td>
-                    <td>
-                        <!--phuong thuc co kieu boolean thi chuyen thanh isRole-->
-                        <input type="checkbox" name="chkAdmin" value="ON" 
-                               <%
-                                 if(dto.isRole()){
-                                     %>
-                                     checked="checked"
-                               <%
-                                 }  
-                               %>
-                               />
-                        <%= dto.isRole() %>
-                    </td>
-                    <td>
-                        <a href="<%= urlRewriting %>">Delete</a>
-                    </td>
-                    <td>
-                        <input type="submit" value="update" name="btAction"/>
-                        <input type="hidden" name="lastSearchValue" 
-                               value="<%= searchValue%>"/>
-                    </td>
-                </tr>
-            </form>    
-                <%
-                    }//end traverse do in result
-                %>
-            </tbody>
-        </table>
+        <c:set var="searchValue" value="${param.txtSearch}"/>
+        <c:if test="${not empty searchValue}">
+            <c:set var="result" value="${requestScope.SEARCH_RESULT}"/>
+            <c:if test="${not empty result}">
+                <table border="1">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Delete</th>
+                            <th>Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <c:set var="errors" value="${sessionScope.ERROR_SUPDATE}"/>
+                        <c:set var="uerror" value="${sessionScope.USERNAME}"/>
+                        <c:set var="perror" value="${sessionScope.PASSWORD}"/>
+                        <c:forEach var="dto" items="${result}" varStatus="counter">
+                        <form action="DispatchController">
+                            <tr>
+                                <td>
+                                    ${counter.count}
+                                </td>
+                                <td>
+                                    ${dto.username}
+                                    <input type="hidden" name="txtUsername" value="${dto.username}" />
+                                </td>
+                                <td>
 
-        <%
-        } else {
-        %>
-        <h1>
-            No record is matched!!!
-        </h1>
 
-        <%
-                }
+                                    <c:if test="${dto.username == uerror}">
+                                        <c:if test="${not empty errors.passwordLengthError}">
+                                            <input type="text" name="txtPassword" value="${perror}" />
+                                            <br/>
+                                            <font color='red'>
+                                            ${errors.passwordLengthError}
+                                            </font>
+                                        </c:if>
 
-            }//end search Value has existed
-        %>
-    </body>
+                                    </c:if>
+                                    <c:if test="${dto.username != uerror}">
+                                        <input type="text" name="txtPassword" value="${dto.password}" />
+                                    </c:if>
+                                </td>
+                                <td>
+                                    ${dto.fullName}
+                                </td>
+                                <td>
+                                    <input type="checkbox" name="chkAdmin" value="ON" 
+                                           <c:if test="${dto.role}">
+                                               checked="Chekced"
+                                           </c:if>/>
 
-    
+                                </td>
+                                <td>
+                                    <c:if test="${not dto.role}">
+                                        <c:url var="urlRewriting" value="DispatchController">
+                                            <c:param name="btAction" value="delete"/>
+                                            <c:param name="pk" value="${dto.username}"/>
+                                            <c:param name="lastSearchValue" value="${searchValue}"/>
+                                        </c:url>
+                                        <a href="${urlRewriting}">Delete</a>
+                                    </c:if>
+                                </td>
+                                <td>
+                                    <input type="submit" name="btAction" value="update" />
+                                    <input type="hidden" name="lastSearchValue" value="${searchValue}" />
+                                </td>
+                            </tr>
+                        </form>
+
+
+                    </c:forEach>
+                </tbody>
+            </table>
+
+        </c:if>
+        <c:if test="${empty result}">
+            Invalid Search
+        </c:if>
+    </c:if>
+
+</body>
+
+
 </html>

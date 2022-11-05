@@ -8,23 +8,28 @@ package minhtda.controller;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.naming.NamingException;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import minhtda.registration.RegistrationDAO;
+import minhtda.registration.RegistrationDTO;
+import minhtda.utils.MyApplicationConstants;
 
 /**
  *
- * @author loqua
+ * @author minhd
  */
 public class LoginServlet extends HttpServlet {
 
-    private final String SEARCH_PAGE = "search.jsp";
-    private final String INVALID_PAGE = "invalid.html";
+    //private final String SEARCH_PAGE = "search.jsp";
+    //private final String INVALID_PAGE = "invalid.html";
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -40,8 +45,10 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-
-        String url = INVALID_PAGE;
+        ServletContext context = this.getServletContext();
+        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
+        String url = siteMaps.getProperty(MyApplicationConstants.LoginFeature.INVALID_PAGE);
+        System.out.println("di den servlet");
 
         try {
             String username = request.getParameter("txtUsername");
@@ -51,13 +58,17 @@ public class LoginServlet extends HttpServlet {
             RegistrationDAO dao = new RegistrationDAO();
 
             //1.2 call method of that object
-            boolean result = dao.checkLogin(username, password);
+            RegistrationDTO result = dao.checkLogin(username, password);
             //2. proccess response object
-            if (result) {
-                url = SEARCH_PAGE;
-                Cookie cookie = new Cookie(username, password);
-                cookie.setMaxAge(60*3);
-                response.addCookie(cookie);
+            if (result!=null) {
+                System.out.println("da check login");
+                HttpSession session = request.getSession();
+                session.setAttribute("USER", result);
+                
+                //Cookie cookie = new Cookie(username, password);
+                //cookie.setMaxAge(60*3);
+                //response.addCookie(cookie);
+                url = siteMaps.getProperty(MyApplicationConstants.LoginFeature.SEARCH_PAGE);
             }//end user has already existed
 
             //end user clicked Login
@@ -66,8 +77,7 @@ public class LoginServlet extends HttpServlet {
         } catch (SQLException ex) {
             ex.printStackTrace();
         } finally {
-            RequestDispatcher rd = request.getRequestDispatcher(url);
-            rd.forward(request, response);
+            response.sendRedirect(url);
             out.close();
         }
     }

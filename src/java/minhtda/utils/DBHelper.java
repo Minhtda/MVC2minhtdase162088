@@ -5,18 +5,22 @@
  */
 package minhtda.utils;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
 /**
  *
- * @author loqua
+ * @author minhd
  */
 public class DBHelper implements Serializable{
     public static Connection makeConnection()
@@ -40,4 +44,26 @@ public class DBHelper implements Serializable{
 //        
 //        return con;
     }
+    public static Properties getSiteMap(String siteMapsFile, ServletContext context)
+    throws IOException{
+        if(siteMapsFile == null){
+            return null;
+        }
+        if (siteMapsFile.trim().isEmpty()) {
+            return null;
+        }
+        Properties result = null;
+        InputStream is =null;
+        try {
+            is = context.getResourceAsStream(siteMapsFile);
+            result = new Properties();
+            result.load(is);
+            return result;
+        } finally{
+            if(is != null){
+                is.close();
+            }
+        }
+    }
+    
 }

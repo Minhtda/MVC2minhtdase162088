@@ -17,24 +17,25 @@ import minhtda.utils.DBHelper;
 
 /**
  *
- * @author loqua
+ * @author minhd
  */
 public class RegistrationDAO implements Serializable{
-    public boolean checkLogin(String username, String password)
+    public RegistrationDTO checkLogin(String username, String password)
     throws SQLException, NamingException{
         Connection con = null;
         PreparedStatement stm = null;
         ResultSet rs = null;
-        boolean result = false;
-        
+        RegistrationDTO result = null;
+        System.out.println("di den dao");
         try{
         //1. connect DB
         //open connection
         con = DBHelper.makeConnection();
         if(con != null){
+            System.out.println("da check connection");
         //2. CURD
         //2.1 Create a SQL String
-        String sql = "Select username "
+        String sql = "Select username, lastname "
                 + "From Registration "
                 + "Where username = ? And password = ?";
         //2.2 Create a Statement Object
@@ -49,7 +50,9 @@ public class RegistrationDAO implements Serializable{
         //Tra ve nhieu dong du lieu thi su dung while
         //Tra ve 1 dong du lieu thi su dung if
         if(rs.next()){
-            result = true;
+            System.out.println("da check");
+            String fullname = rs.getString("lastname");
+            result = new RegistrationDTO(username, password, fullname, false);
             }
         }//end con is available
         
@@ -186,6 +189,50 @@ public class RegistrationDAO implements Serializable{
         stm.setString(1, password);
         stm.setBoolean(2, isRoll);
         stm.setString(3, Username);
+        int effectRows = stm.executeUpdate();
+        if(effectRows>0){
+            result = true;
+        }
+        }//end con is available
+        
+        } finally{
+            if(rs != null){
+                rs.close();
+            }
+            if(stm != null){
+                stm.close();
+            }
+            if(con != null){
+                con.close();
+            }
+        }
+        return result;
+    }
+    public boolean createAccount(RegistrationDTO dto)
+    throws SQLException,
+             NamingException{
+        Connection con = null;
+        PreparedStatement stm = null;
+        ResultSet rs = null;
+        boolean result = false;
+        
+        try{
+        //1. connect DB
+        //open connection
+        con = DBHelper.makeConnection();
+        if(con != null){
+        //2. CURD
+        //2.1 Create a SQL String
+        String sql = "Insert Into Registration("
+                + "username, password, lastname, isAdmin"
+                + ") Values("
+                + "?, ?, ?, ?"
+                + ")";
+        stm = con.prepareStatement(sql);
+        stm.setString(1, dto.getUsername());
+        stm.setString(2, dto.getPassword());
+        stm.setString(3, dto.getFullName());
+        stm.setBoolean(4, dto.isRole());
         int effectRows = stm.executeUpdate();
         if(effectRows>0){
             result = true;

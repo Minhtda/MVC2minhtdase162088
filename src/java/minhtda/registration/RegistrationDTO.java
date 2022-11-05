@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  *
- * @author loqua
+ * @author minhd
  */
 public class RegistrationDTO implements Serializable{
     private String username;

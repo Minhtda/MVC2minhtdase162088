@@ -5,31 +5,29 @@
  */
 package minhtda.controller;
 
+import javax.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.SQLException;
-import java.util.List;
 import java.util.Properties;
-import javax.naming.NamingException;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import minhtda.registration.RegistrationDAO;
-import minhtda.registration.RegistrationDTO;
+import javax.servlet.http.HttpSession;
+import minhtda.cart.CartObject;
+import minhtda.product.ProductDTO;
 import minhtda.utils.MyApplicationConstants;
 
 /**
  *
  * @author minhd
  */
-@WebServlet(name = "SearchLastNameServlet", urlPatterns = {"/SearchLastNameServlet"})
-public class SearchLastNameServlet extends HttpServlet {
-//    private final String SEARCH_PAGE = "search.html";
-//    private final String SEARCH_RESULT_PAGE = "search.jsp";
+@WebServlet(name = "AddtocartServlet", urlPatterns = {"/AddtocartServlet"})
+public class AddtocartServlet extends HttpServlet {
+
+    //private final String SHOPPING_PAGE = "cart.html";
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -43,35 +41,34 @@ public class SearchLastNameServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         ServletContext context = this.getServletContext();
-        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
-        String url = siteMaps.getProperty(MyApplicationConstants.SearchLastNameFeature.SEARCH_PAGE);
-        String searchValue = request.getParameter("txtSearch");
-        
-        try  {
-            //1. Check valid search Value
-            if(searchValue.trim().length() > 0){
-                
-                //2. Call DAO
-                RegistrationDAO dao =  new RegistrationDAO();
-                dao.searchLastName(searchValue);
-                
-                //3.Process
-                List<RegistrationDTO> result = dao.getAccountList();
-                
-                
-                request.setAttribute("SEARCH_RESULT", result);
-            }// return Value has valid value
+        Properties siteMaps = (Properties) context.getAttribute("SITEMAPS");
+        String url = siteMaps.getProperty(MyApplicationConstants.AddToCartFeature.SHOPPING_PAGE);
+        PrintWriter out = response.getWriter();
+        try {
+            //1. Cust goes to 
+            HttpSession session = request.getSession();
+            //2. Cust takes his/her cartl
+            CartObject cart = (CartObject) session.getAttribute("CART");
+            if (cart == null) {
+                cart = new CartObject();
+            }//end cart has not existed
+            //3. Cust chooses a specified item
+            String name = request.getParameter("txtName");
+            String sku = request.getParameter("txtSku");
+            float price = Float.parseFloat(request.getParameter("txtPrice"));
+            int quanity = 1;
+            ProductDTO dto = new ProductDTO(sku, name, price, quanity);
+            if (dto != null) {
+                cart.addITemsToCart(dto);
+                session.setAttribute("SESSION", session);
+                session.setAttribute("CART", cart);
+            }
+            //4. Cust drop it down
 
-        }catch(NamingException ex){
-            ex.printStackTrace();
-        }
-        catch(SQLException ex){
-            ex.printStackTrace();
-        }
-        finally{
-            RequestDispatcher rd = request.getRequestDispatcher(url);
-            rd.forward(request, response);
-            //
+            //lam cai text box de nhap so luong
+            //5. Cust continuely goes shopping
+        } finally {
+            response.sendRedirect(url);
         }
     }
 

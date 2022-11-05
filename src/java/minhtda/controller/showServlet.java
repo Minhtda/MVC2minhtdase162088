@@ -6,32 +6,29 @@
 
 package minhtda.controller;
 
-import javax.servlet.Registration;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.List;
+import javax.naming.NamingException;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.sql.SQLException;
-import java.util.Properties;
-import javax.naming.NamingException;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import minhtda.registration.RegistrationDAO;
-import minhtda.registration.RegistrationDTO;
-import minhtda.utils.MyApplicationConstants;
+import javax.servlet.http.HttpSession;
+import minhtda.product.ProductDAO;
+import minhtda.product.ProductDTO;
 
 /**
  *
  * @author minhd
  */
-@WebServlet(name="FirstTimeServlet", urlPatterns={"/FirstTimeServlet"})
-public class FirstTimeServlet extends HttpServlet {
-//    private final String LOGIN_PAGE = "login.html";
-//    private final String SEARCH_PAGE = "search.jsp";
+@WebServlet(name="showServlet", urlPatterns={"/showServlet"})
+public class showServlet extends HttpServlet {
+   private final String INVALID_PAGE = "invalid.html";
+   private final String SHOPPING_PAGE = "shopping.jsp";
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -40,41 +37,25 @@ public class FirstTimeServlet extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+    throws ServletException, IOException{
         response.setContentType("text/html;charset=UTF-8");
-        ServletContext context = this.getServletContext();
-        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
-        String url = siteMaps.getProperty(MyApplicationConstants.FirstTimeFeature.LOGIN_PAGE);
         PrintWriter out = response.getWriter();
-        try{
-            //1 get cookies
-            Cookie[] cookies = request.getCookies();
-//            if(cookies != null){
-//                Cookie lastCookie = cookies[cookies.length - 1];
-//                String username = lastCookie.getName();
-//                String password = lastCookie.getValue();
-//                RegistrationDAO dao = new RegistrationDAO();
-//                boolean result = dao.checkLogin(username, password);
-//                if(result){
-//                    url = SEARCH_PAGE;
-//                }
-            if(cookies != null){
-                String username = cookies[cookies.length - 1].getName();
-                String password = cookies[cookies.length - 1].getValue();
-                RegistrationDAO dao = new RegistrationDAO();
-                RegistrationDTO result = dao.checkLogin(username, password);
-                if(result!=null){
-                    url = siteMaps.getProperty(MyApplicationConstants.FirstTimeFeature.SEARCH_PAGE);
-                }
-            }
-            //2 get last cookie
-            //3 set username and password 
-            //4 call DAO 
-            //5 process
-        }catch (NamingException ex) {
-            ex.printStackTrace();
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        String url = INVALID_PAGE;
+        try {
+            
+            /* TODO output your page here. You may use following sample code. */
+            ProductDAO dao = new ProductDAO();
+            dao.showAll();
+            List<ProductDTO> result = dao.getProductListt();
+            HttpSession hs = request.getSession();
+            hs.setAttribute("ProductList", result);
+            url = SHOPPING_PAGE;
+        }
+        catch(SQLException ex){
+            
+        }
+        catch(NamingException ex){
+            
         }
         finally{
             RequestDispatcher rd = request.getRequestDispatcher(url);

@@ -6,23 +6,26 @@
 
 package minhtda.controller;
 
-import jakarta.servlet.RequestDispatcher;
+import javax.servlet.RequestDispatcher;
 import java.io.IOException;
 import java.io.PrintWriter;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
+import java.util.Properties;
 import javax.naming.NamingException;
+import javax.servlet.ServletContext;
 import minhtda.registration.RegistrationDAO;
+import minhtda.utils.MyApplicationConstants;
 
 /**
  *
  * @author minhd
  */
 public class DeleteServlet extends HttpServlet {
-       private final String ERROR_PAGE = "error.html";
+//       private final String ERROR_PAGE = "error.html";
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
      * @param request servlet request
@@ -32,7 +35,9 @@ public class DeleteServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        String url = ERROR_PAGE;
+        ServletContext context = this.getServletContext();
+        Properties siteMaps = (Properties)context.getAttribute("SITEMAPS");
+        String url = siteMaps.getProperty(MyApplicationConstants.DeleteFeature.ERROR_PAGE);
         String username = request.getParameter("pk");
         String searchValue = request.getParameter("lastSearchValue");
         response.setContentType("text/html;charset=UTF-8");
